@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  init_db:
+    image: flyway/flyway
+    container_name: init_db
+    volumes:
+      - "./sql:/flyway/sql"
+    command: -url=jdbc:postgresql://postgres/student-service -user=user -password=password -connectRetries=60 migrate
+    depends_on:
+      - postgres
+    networks:
+      - student_net
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=student-service
+    ports:
+      - "5432:5432"
+    volumes:
+      - "student_db_volume:/var/lib/postgresql/data"
+    networks:
+      - student_net
+
+networks:
+  student_net:
+
+volumes:
+  student_db_volume:
