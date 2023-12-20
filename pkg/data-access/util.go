@@ -2,6 +2,7 @@ package dataaccess
 
 import (
 	"database/sql"
+	"student-service/pkg/data-access/dto"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -21,5 +22,9 @@ func InitializeSequelDB(connString string) *bun.DB {
 
 	var sqlDB *sql.DB = stdlib.OpenDB(*config)
 
-	return bun.NewDB(sqlDB, pgdialect.New())
+	db := bun.NewDB(sqlDB, pgdialect.New())
+	db.RegisterModel((*dto.ClassToStudent)(nil))
+	db.RegisterModel((*dto.ClassToTeacher)(nil))
+
+	return db
 }
