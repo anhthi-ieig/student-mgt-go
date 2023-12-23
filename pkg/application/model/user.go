@@ -4,7 +4,8 @@ import "student-service/pkg/data-access/dto"
 
 type User struct {
 	ID       int      `json:"id"`
-	Username string   `json:"username"`
 	Name     string   `json:"name"`
+	Password string   `json:"password"`
+	Username string   `json:"username"`
 	Role     dto.Role `json:"role"`
 }

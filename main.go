@@ -2,8 +2,11 @@ package main
 
 import (
 	"net/http"
+	"student-service/pkg/application/handler"
+	"student-service/pkg/application/mdw"
 	"student-service/pkg/application/rest"
 	dataaccess "student-service/pkg/data-access"
+	"student-service/pkg/data-access/dto"
 	"student-service/pkg/service"
 
 	"github.com/labstack/echo/v4"
@@ -25,15 +28,17 @@ func main() {
 	studentAPI := rest.NewStudentAPI(studentService)
 	classAPI := rest.NewClassAPI(classService)
 
+	userDA := dataaccess.NewUserDA(sqlDB)
+
+	// create student service
+	userService := service.NewUserService(userDA)
+
 	server := initializeHTTPServer()
 
 	// Index page
 	server.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "It works!")
 	})
-
-	// Routes
-	server.GET("/students", studentAPI.List)
 
 	// Classes
 	server.GET("/classes", classAPI.List)
@@ -49,6 +54,10 @@ func main() {
 	server.DELETE("/classes/:class-id/teachers/:teacher-id", classAPI.RemoveTeacher)
 
 	// server.GET("/login", example.Handle)
+	server.POST("/login", handler.Login, mdw.BasicAuthWithUserService(userService))
+
+	//Example using middleware for checking token and checking permission
+	server.GET("/students", studentAPI.List, mdw.IsValidToken, mdw.IsValidPermission(userService, dto.Role_Admin))
 
 	// authenticated := server.Group("", authnMiddleware)
 	// authenticated.GET("/me", example.Handle)
