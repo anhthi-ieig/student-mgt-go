@@ -15,12 +15,15 @@ func main() {
 
 	// create student data access
 	studentDA := dataaccess.NewStudentDA(sqlDB)
+	classDA := dataaccess.NewClassDA(sqlDB)
 
 	// create student service
 	studentService := service.NewStudentService(studentDA)
+	classService := service.NewClassService(classDA)
 
 	// create student API
 	studentAPI := rest.NewStudentAPI(studentService)
+	classAPI := rest.NewClassAPI(classService)
 
 	server := initializeHTTPServer()
 
@@ -31,6 +34,19 @@ func main() {
 
 	// Routes
 	server.GET("/students", studentAPI.List)
+
+	// Classes
+	server.GET("/classes", classAPI.List)
+	server.GET("/classes/:id", classAPI.Get)
+	server.POST("/classes", classAPI.Create)
+	server.PUT("/classes/:id", classAPI.Update)
+	server.DELETE("/classes/:id", classAPI.Delete)
+	server.GET("/classes/:id/students", classAPI.ListStudents)
+	server.GET("/classes/:id/teachers", classAPI.ListTeachers)
+	server.PUT("/classes/:class-id/students/:student-id", classAPI.AddStudent)
+	server.PUT("/classes/:class-id/teachers/:teacher-id", classAPI.AddTeacher)
+	server.DELETE("/classes/:class-id/students/:student-id", classAPI.RemoveStudent)
+	server.DELETE("/classes/:class-id/teachers/:teacher-id", classAPI.RemoveTeacher)
 
 	// server.GET("/login", example.Handle)
 
