@@ -149,7 +149,7 @@ func (api *classAPI) AddStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Something went wrong")
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func (api *classAPI) AddTeacher(c echo.Context) error {
@@ -171,7 +171,7 @@ func (api *classAPI) AddTeacher(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Something went wrong")
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func (api *classAPI) RemoveStudent(c echo.Context) error {
@@ -193,7 +193,7 @@ func (api *classAPI) RemoveStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Something went wrong")
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func (api *classAPI) RemoveTeacher(c echo.Context) error {
@@ -215,7 +215,7 @@ func (api *classAPI) RemoveTeacher(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Something went wrong")
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func NewClassAPI(classService interfaces.ClassService) *classAPI {
