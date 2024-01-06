@@ -57,7 +57,7 @@ func main() {
 	server.POST("/login", handler.Login, mdw.BasicAuthWithUserService(userService))
 
 	//Example using middleware for checking token and checking permission
-	server.GET("/students", studentAPI.List, mdw.IsValidToken, mdw.IsValidPermission(userService, dto.Role_Admin))
+	server.GET("/students", studentAPI.List, mdw.IsValidToken, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
 
 	// authenticated := server.Group("", authnMiddleware)
 	// authenticated.GET("/me", example.Handle)

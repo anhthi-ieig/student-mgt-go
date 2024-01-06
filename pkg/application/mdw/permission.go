@@ -53,9 +53,13 @@ func IsValidToken(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func IsValidPermission(service *service.UserService, role dto.Role) echo.MiddlewareFunc {
+func IsValidPermission(service *service.UserService, arrayRoles []dto.Role) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			isEmpty := len(arrayRoles) == 0
+			if isEmpty {
+				return echo.NewHTTPError(http.StatusForbidden, "Insufficient permissions")
+			}
 			username := c.Get("username").(string)
 
 			userFromDB, err := service.GetUserByUserName(context.Background(), username)
@@ -64,9 +68,19 @@ func IsValidPermission(service *service.UserService, role dto.Role) echo.Middlew
 				return echo.NewHTTPError(http.StatusInternalServerError, "something when wrong!")
 			}
 
-			if userFromDB.Role == role {
+			findRole := dto.Role("")
+			for _, role := range arrayRoles {
+				if role == userFromDB.Role {
+					findRole = role
+					break
+				}
+			}
+			if findRole == "" {
+				echo.NewHTTPError(http.StatusForbidden, "Insufficient permissions")
+			} else {
 				return next(c)
 			}
+
 			return echo.NewHTTPError(http.StatusForbidden, "Insufficient permissions")
 		}
 	}
