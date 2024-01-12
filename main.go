@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	sqlDB := dataaccess.InitializeSequelDB("postgres://user:password@localhost:5432/student-service?sslmode=disable")
+	sqlDB := dataaccess.InitializeSequelDB("postgres://user:password@postgres:5432/student-service?sslmode=disable")
 
 	// create student data access
 	studentDA := dataaccess.NewStudentDA(sqlDB)
@@ -74,7 +74,7 @@ func main() {
 	// authenticated.PATCH("/users/:userId", example.Handle)
 
 	// Start listening
-	server.Logger.Fatal(server.Start("127.0.0.1:8080"))
+	server.Logger.Fatal(server.Start(":8080"))
 }
 
 func initializeHTTPServer() *echo.Echo {

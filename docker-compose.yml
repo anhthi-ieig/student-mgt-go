@@ -25,6 +25,16 @@ services:
     networks:
       - student_net
 
+  api:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - student_net
+
 networks:
   student_net:
 
