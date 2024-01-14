@@ -19,19 +19,17 @@ func main() {
 	// create student data access
 	studentDA := dataaccess.NewStudentDA(sqlDB)
 	classDA := dataaccess.NewClassDA(sqlDB)
+	userDA := dataaccess.NewUserDA(sqlDB)
 
 	// create student service
 	studentService := service.NewStudentService(studentDA)
 	classService := service.NewClassService(classDA)
+	userService := service.NewUserService(userDA)
 
 	// create student API
 	studentAPI := rest.NewStudentAPI(studentService)
 	classAPI := rest.NewClassAPI(classService)
-
-	userDA := dataaccess.NewUserDA(sqlDB)
-
-	// create student service
-	userService := service.NewUserService(userDA)
+	userAPI := rest.NewUserAPI(userService)
 
 	server := initializeHTTPServer()
 
@@ -54,6 +52,10 @@ func main() {
 	classes.DELETE("/:class-id/students/:student-id", classAPI.RemoveStudent, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
 	classes.DELETE("/:class-id/teachers/:teacher-id", classAPI.RemoveTeacher, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
 
+	// Users
+	users := server.Group("/users", mdw.IsValidToken)
+	users.PUT("/:id", userAPI.Update, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin}))
+	users.GET("/:id", userAPI.Get, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher, dto.Role_Student}))
 	// server.GET("/login", example.Handle)
 	server.POST("/login", handler.Login, mdw.BasicAuthWithUserService(userService))
 
