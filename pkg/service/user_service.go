@@ -11,12 +11,17 @@ type UserService struct {
 	db interfaces.UserDA
 }
 
-func (s *UserService) Update(ctx context.Context, id int, request model.User) (model.User, error) {
-	user, err := s.db.Update(ctx, id, modelToDtoUser(request))
+func (s *UserService) List(c context.Context) ([]model.User, error) {
+	list, err := s.db.List(c)
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
-	return dtoToModelUser(user), nil
+
+	result := make([]model.User, len(list))
+	for i, v := range list {
+		result[i] = dtoToModelUser(v)
+	}
+	return result, nil
 }
 
 func (s *UserService) Get(ctx context.Context, id int) (model.User, error) {
@@ -34,16 +39,30 @@ func (s *UserService) GetUserByUserName(c context.Context, username string) (mod
 		return model.User{}, err
 	}
 
-	return model.User{
-		Username: user.Username,
-		Password: user.Password,
-		Role:     user.Role,
-		Name:     user.Name,
-	}, nil
+	return dtoToModelUser(user), nil
+}
+
+func (s *UserService) Create(c context.Context, request model.User) (model.User, error) {
+	user, err := s.db.Create(c, modelToDtoUser(request))
+
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return dtoToModelUser(user), nil
+}
+
+func (s *UserService) Update(ctx context.Context, id int, request model.User) (model.User, error) {
+	user, err := s.db.Update(ctx, id, modelToDtoUser(request))
+	if err != nil {
+		return model.User{}, err
+	}
+	return dtoToModelUser(user), nil
 }
 
 func dtoToModelUser(d dto.User) model.User {
 	m := model.User{
+		ID:       d.ID,
 		Username: d.Username,
 		Password: d.Password,
 		Role:     d.Role,
@@ -54,6 +73,7 @@ func dtoToModelUser(d dto.User) model.User {
 
 func modelToDtoUser(m model.User) dto.User {
 	d := dto.User{
+
 		Username: m.Username,
 		Password: m.Password,
 		Role:     m.Role,

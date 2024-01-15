@@ -29,6 +29,18 @@ func (s *userDA) GetUserByUserName(c context.Context, username string) (dto.User
 	}, err
 }
 
+func (s *userDA) List(c context.Context) ([]dto.User, error) {
+	var users []dto.User
+
+	if err := s.dbc.NewSelect().
+		Model(&users).
+		Scan(c); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (s *userDA) Get(c context.Context, ID int) (dto.User, error) {
 	user := dto.User{ID: ID}
 
@@ -41,6 +53,17 @@ func (s *userDA) Get(c context.Context, ID int) (dto.User, error) {
 		return dto.User{}, err
 	}
 
+	return user, nil
+}
+
+func (s *userDA) Create(c context.Context, user dto.User) (dto.User, error) {
+	if _, err := s.dbc.NewInsert().
+		Model(&user).
+		On("CONFLICT (id) DO UPDATE").
+		Returning("*").
+		Exec(c); err != nil {
+		return dto.User{}, err
+	}
 	return user, nil
 }
 
