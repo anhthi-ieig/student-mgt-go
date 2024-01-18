@@ -5,6 +5,8 @@ import (
 	"student-service/pkg/application/interfaces"
 	"student-service/pkg/application/model"
 	"student-service/pkg/data-access/dto"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -43,7 +45,10 @@ func (s *UserService) GetUserByUserName(c context.Context, username string) (mod
 }
 
 func (s *UserService) Create(c context.Context, request model.User) (model.User, error) {
-	user, err := s.db.Create(c, modelToDtoUser(request))
+	requestPointer := &request
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+	*&requestPointer.Password = string(hashPassword)
+	user, err := s.db.Create(c, modelToDtoUser(*requestPointer))
 
 	if err != nil {
 		return model.User{}, err
@@ -73,7 +78,6 @@ func dtoToModelUser(d dto.User) model.User {
 
 func modelToDtoUser(m model.User) dto.User {
 	d := dto.User{
-
 		Username: m.Username,
 		Password: m.Password,
 		Role:     m.Role,

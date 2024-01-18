@@ -16,7 +16,7 @@ func Login(c echo.Context) error {
 	clams := token.Claims.(jwt.MapClaims)
 
 	clams["username"] = username
-	clams["exp"] = time.Now().Add(2 * time.Minute).Unix()
+	clams["exp"] = time.Now().Add(10 * time.Minute).Unix()
 
 	t, err := token.SignedString([]byte("mysecretkey"))
 
