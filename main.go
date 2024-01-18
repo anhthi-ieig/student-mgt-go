@@ -16,27 +16,36 @@ import (
 func main() {
 	sqlDB := dataaccess.InitializeSequelDB("postgres://user:password@localhost:5432/student-service?sslmode=disable")
 
-	// create student data access
-	studentDA := dataaccess.NewStudentDA(sqlDB)
-	classDA := dataaccess.NewClassDA(sqlDB)
+	// Data access
 	userDA := dataaccess.NewUserDA(sqlDB)
+	classDA := dataaccess.NewClassDA(sqlDB)
 
-	// create student service
-	studentService := service.NewStudentService(studentDA)
-	classService := service.NewClassService(classDA)
+	// Services
 	userService := service.NewUserService(userDA)
+	classService := service.NewClassService(classDA)
 
-	// create student API
-	studentAPI := rest.NewStudentAPI(studentService)
-	classAPI := rest.NewClassAPI(classService)
+	// APIs
 	userAPI := rest.NewUserAPI(userService)
+	classAPI := rest.NewClassAPI(classService)
 
 	server := initializeHTTPServer()
 
-	// Index page
+	/*
+	 * Routing
+	 */
+
 	server.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "It works!")
 	})
+
+	server.POST("/login", handler.Login, mdw.BasicAuthWithUserService(userService))
+
+	// Users
+	users := server.Group("/users", mdw.IsValidToken)
+	users.GET("", userAPI.List)
+	users.GET("/:id", userAPI.Get, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher, dto.Role_Student}))
+	users.POST("", userAPI.Create, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
+	users.PUT("/:id", userAPI.Update, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin}))
 
 	// Classes
 	classes := server.Group("/classes", mdw.IsValidToken)
@@ -51,29 +60,6 @@ func main() {
 	classes.PUT("/:class-id/teachers/:teacher-id", classAPI.AddTeacher, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
 	classes.DELETE("/:class-id/students/:student-id", classAPI.RemoveStudent, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
 	classes.DELETE("/:class-id/teachers/:teacher-id", classAPI.RemoveTeacher, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
-
-	// Users
-	users := server.Group("/users", mdw.IsValidToken)
-	users.PUT("/:id", userAPI.Update, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin}))
-	users.GET("/:id", userAPI.Get, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher, dto.Role_Student}))
-	// server.GET("/login", example.Handle)
-	server.POST("/login", handler.Login, mdw.BasicAuthWithUserService(userService))
-
-	//Example using middleware for checking token and checking permission
-	server.GET("/students", studentAPI.List, mdw.IsValidToken, mdw.IsValidPermission(userService, []dto.Role{dto.Role_Admin, dto.Role_Teacher}))
-
-	// authenticated := server.Group("", authnMiddleware)
-	// authenticated.GET("/me", example.Handle)
-
-	// teacher
-	// authenticated.GET("/classes", example.Handle)
-	// authenticated.POST("/classes", example.Handle)
-	// authenticated.PATCH("/classes/:classId", example.Handle)
-
-	// admin
-	// authenticated.GET("/users", example.Handle)
-	// authenticated.POST("/users", example.Handle)
-	// authenticated.PATCH("/users/:userId", example.Handle)
 
 	// Start listening
 	server.Logger.Fatal(server.Start("127.0.0.1:8080"))
